@@ -194,6 +194,44 @@ function(obj) {
 };
 `;
 
+const objectValues = `
+function(obj) {
+  var hasOwnProperty = Object.prototype.hasOwnProperty,
+      hasDontEnumBug = !({ toString: null }).propertyIsEnumerable('toString'),
+      dontEnums = [
+        'toString',
+        'toLocaleString',
+        'valueOf',
+        'hasOwnProperty',
+        'isPrototypeOf',
+        'propertyIsEnumerable',
+        'constructor'
+      ],
+      dontEnumsLength = dontEnums.length;
+
+  if (typeof obj !== 'object' && (typeof obj !== 'function' || obj === null)) {
+    throw new TypeError('Object.keys called on non-object');
+  }
+
+  var result = [], prop, i;
+
+  for (prop in obj) {
+    if (hasOwnProperty.call(obj, prop)) {
+      result.push(obj[prop]);
+    }
+  }
+
+  if (hasDontEnumBug) {
+    for (i = 0; i < dontEnumsLength; i++) {
+      if (hasOwnProperty.call(obj, dontEnums[i])) {
+        result.push(obj[dontEnums[i]]);
+      }
+    }
+  }
+  return result;
+};
+`;
+
 const objectGetProtoOf = `
 function(object) {
     /* eslint-disable no-proto */
@@ -296,6 +334,20 @@ function(object, descriptors) {
 const arrayIsArray = `
 function(arg) {
   return Object.prototype.toString.call(arg) === '[object Array]';
+};
+`;
+
+const arrayFrom = `
+function(arg) {
+  try {
+    var array = [];
+    for (var i = 0; i < arg.length; i++) {
+      array.push(arg[i]);
+    }
+    return array;
+  } catch (err) {
+    return [];
+  }
 };
 `;
 
@@ -641,7 +693,7 @@ module.exports = [
 
   // shims
   createTransformPlugin('_objectKeys', 'Object.keys', objectKeys),
-  // createTransformPlugin('_objectValues', 'Object.values', objectValues),
+  createTransformPlugin('_objectValues', 'Object.values', objectValues),
   createTransformPlugin('_objectAssign', 'Object.assign', objectAssign),
   createTransformPlugin(
     '_objectPreventExtensions',
@@ -650,6 +702,7 @@ module.exports = [
   ),
   createTransformPlugin('_objectCreate', 'Object.create', objectCreate),
   createTransformPlugin('_arrayIsArray', 'Array.isArray', arrayIsArray),
+  createTransformPlugin('_arrayFrom', 'Array.from', arrayFrom),
   createTransformPlugin('_numberIsFinite', 'Number.isFinite', numberIsFinite),
   createTransformPluginMultiple(
     'console.time',
