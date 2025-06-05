@@ -585,6 +585,15 @@ function(array, callback) {
 };
 `;
 
+const codeArrayFindIndex = `
+function(array, callback) {
+  for (var i = 0; i < array.length; i++) {
+    var item = array[i];
+    if (callback(item, i, array)) return i;
+  }
+};
+`;
+
 function createMemberExpressionPolyfill(name, replace, code) {
   const replaceWith = `_${replace}`;
   return function ({ types: t }) {
@@ -714,6 +723,11 @@ module.exports = [
   ),
   createMemberExpressionPolyfill('Array.forEach', 'forEach', codeArrayForEach),
   createMemberExpressionPolyfill('Array.find', 'find', codeArrayFind),
+  createMemberExpressionPolyfill(
+    'Array.findIndex',
+    'findIndex',
+    codeArrayFindIndex
+  ),
   createMemberExpressionPolyfill('Array.filter', 'filter', codeArrayFilter),
   createMemberExpressionPolyfill('Array.map', 'map', codeArrayMap),
   createMemberExpressionPolyfill('Array.reduce', 'reduce', codeArrayReduce),
